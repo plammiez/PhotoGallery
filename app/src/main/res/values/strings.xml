@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">PhotoGallery</string>
+    <string name="photo_progress_loaded">Progress loaded</string>
 </resources>
