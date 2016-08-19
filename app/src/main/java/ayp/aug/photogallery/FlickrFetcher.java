@@ -21,6 +21,14 @@ public class FlickrFetcher {
 
     private static final String TAG = "FlickrFetcher";
 
+    /**
+     *  Open connection.
+     *  Read and write data from stream.
+     *
+     * @param urlSpec
+     * @return
+     * @throws IOException
+     */
     public byte[] getUrlBytes(String urlSpec) throws IOException {
         URL url = new URL(urlSpec);
 
@@ -53,6 +61,13 @@ public class FlickrFetcher {
         }
     }
 
+    /**
+     * Convert urlByte to string.
+     *
+     * @param urlSpec
+     * @return
+     * @throws IOException
+     */
     public String getUrlString(String urlSpec) throws IOException {
         return new String(getUrlBytes(urlSpec));
     }
@@ -106,6 +121,14 @@ public class FlickrFetcher {
 //        return url;
 //    }
 
+    /**
+     * Build uri with service from flickr.
+     *
+     * @param method
+     * @param param
+     * @return
+     * @throws IOException
+     */
     private String buildUri(String method, String... param) throws IOException {
 
         String jsonString = null;
@@ -132,6 +155,13 @@ public class FlickrFetcher {
         return url;
     }
 
+    /**
+     * Get item from url.
+     *
+     * @param url
+     * @return
+     * @throws IOException
+     */
     private String queryItem(String url) throws IOException {
 
         Log.i(TAG, "Run URL: " + url);
@@ -146,6 +176,12 @@ public class FlickrFetcher {
 //        searchPhotos(items, key, null);
 //    }
 
+    /**
+     * Search photo then put into <b>items</b>
+     *
+     * @param items array target
+     * @param key to search
+     */
     public void searchPhotos(List<GalleryItem> items, String key) {
         try {
             String url = buildUri(METHOD_SERACH, key);
@@ -161,6 +197,11 @@ public class FlickrFetcher {
         }
     }
 
+    /**
+     * Download photos from url of flickr.
+     *
+     * @param items array target
+     */
     public void getRecentPhotos(List<GalleryItem> items) {
         try {
             String url = buildUri(METHOD_GET_RECENT);
@@ -176,6 +217,14 @@ public class FlickrFetcher {
         }
     }
 
+    /**
+     * Convert JSON object detail to data for add in each item of GalleryItem.
+     *
+     * @param newGalleryItemList List of GalleryItem class
+     * @param jsonBodyStr String that data of JSON object
+     * @throws IOException
+     * @throws JSONException
+     */
     private void parseJSON(List<GalleryItem> newGalleryItemList, String jsonBodyStr)
             throws IOException, JSONException {
 

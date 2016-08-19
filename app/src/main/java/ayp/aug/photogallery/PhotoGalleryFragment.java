@@ -34,6 +34,11 @@ public class PhotoGalleryFragment extends Fragment {
 
     private static final String TAG = "PhotoGalleryFragment";
 
+    /**
+     * Method for make sure isPhotoGalleryFragment.
+     *
+     * @return
+     */
     public static PhotoGalleryFragment newInstance() {
         Bundle args = new Bundle();
         PhotoGalleryFragment fragment = new PhotoGalleryFragment();
@@ -47,6 +52,7 @@ public class PhotoGalleryFragment extends Fragment {
 //    private List<GalleryItem> mItems;
     private ThumbnailDownloader<PhotoHolder> mThumbnailDownloaderThread;
     private FetcherTask mFetcherTask;
+    private String mSearchKey;
 
     // Cache
     private LruCache<String, Bitmap> mMemoryCache;
@@ -55,6 +61,11 @@ public class PhotoGalleryFragment extends Fragment {
     // Use 1/8th of the available memory for this memory cache.
     final int cacheSize = maxMemory / 8;
 
+    /**
+     *
+     *
+     * @param savedInstanceState
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,6 +109,12 @@ public class PhotoGalleryFragment extends Fragment {
         Log.i(TAG, "Start background thread");
     }
 
+    /**
+     *
+     *
+     * @param menu
+     * @param inflater
+     */
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -110,6 +127,8 @@ public class PhotoGalleryFragment extends Fragment {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "Query text submitted: " + query);
+                mSearchKey = query;
+                loadPhoto();
                 return true;
             }
 
@@ -119,29 +138,51 @@ public class PhotoGalleryFragment extends Fragment {
                 return false;
             }
         });
+
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchView.setQuery(mSearchKey, false);
+            }
+        });
+
     }
 
+    /**
+     *
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_refresh: loadPhoto(null);
+            case R.id.menu_refresh: loadPhoto();
+                return true;
+
+            case R.id.menu_clear_search: mSearchKey = null;
+                loadPhoto();
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void loadPhoto(String optionalSearchKey) {
+    private void loadPhoto() {
         if (mFetcherTask == null || !mFetcherTask.isRunning()) {
             mFetcherTask = new FetcherTask();
 
-            if (optionalSearchKey != null) {
-                mFetcherTask.execute(optionalSearchKey);
+            if (mSearchKey != null) {
+                mFetcherTask.execute(mSearchKey);
             } else {
-                mFetcherTask.execute("bird");
+                mFetcherTask.execute();
             }
         }
     }
 
+    /**
+     *
+     *
+     */
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -150,6 +191,10 @@ public class PhotoGalleryFragment extends Fragment {
         Log.i(TAG, "Stop background thread");
     }
 
+    /**
+     *
+     *
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -157,6 +202,38 @@ public class PhotoGalleryFragment extends Fragment {
         mThumbnailDownloaderThread.clearQueue();
     }
 
+    /**
+     *
+     *
+     */
+    @Override
+    public void onPause() {
+        super.onPause();
+        PhotoGalleryPreference.setStoredSearchKey(getActivity(), mSearchKey);
+    }
+
+    /**
+     *
+     *
+     */
+    @Override
+    public void onResume() {
+        super.onResume();
+        String searchKey = PhotoGalleryPreference.getStoredSearchKey(getActivity());
+
+        if (searchKey != null) {
+            mSearchKey = searchKey;
+        }
+    }
+
+    /**
+     *
+     *
+     * @param inflater
+     * @param container
+     * @param savedInstanceState
+     * @return
+     */
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -169,11 +246,17 @@ public class PhotoGalleryFragment extends Fragment {
 //            mFetcherTask = new FetcherTask();
 //            mFetcherTask.execute();
 //        }
-        loadPhoto(null);
+        mSearchKey = PhotoGalleryPreference.getStoredSearchKey(getActivity());
+        loadPhoto();
+        Log.d(TAG, "On create complete : ----- Loaded key -----" + mSearchKey);
 //        mRecyclerView.setAdapter(new PhotoGalleryAdapter(itemList));
         return v;
     }
 
+    /**
+     *
+     *
+     */
     class PhotoHolder extends RecyclerView.ViewHolder {
 
         ImageView mPhoto;
@@ -189,11 +272,20 @@ public class PhotoGalleryFragment extends Fragment {
 //            mText.setText(galleryItem.getTitle());
 //        }
 
+        /**
+         *
+         *
+         * @param drawable
+         */
         public void bindDrawable(@NonNull Drawable drawable) {
             mPhoto.setImageDrawable(drawable);
         }
     }
 
+    /**
+     *
+     *
+     */
     class PhotoGalleryAdapter extends RecyclerView.Adapter<PhotoHolder> {
 
         List<GalleryItem> mGalleryItemList;
@@ -202,6 +294,13 @@ public class PhotoGalleryFragment extends Fragment {
             mGalleryItemList = galleryItems;
         }
 
+        /**
+         *
+         *
+         * @param parent
+         * @param viewType
+         * @return
+         */
         @Override
         public PhotoHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View v = LayoutInflater.from(getActivity()).inflate(
@@ -210,6 +309,12 @@ public class PhotoGalleryFragment extends Fragment {
             return new PhotoHolder(v);
         }
 
+        /**
+         *
+         *
+         * @param holder
+         * @param position
+         */
         @Override
         public void onBindViewHolder(PhotoHolder holder, int position) {
 //            holder.bindGalleryItem(mGalleryItemList.get(position));
@@ -229,16 +334,31 @@ public class PhotoGalleryFragment extends Fragment {
             }
         }
 
+        /**
+         *
+         *
+         * @return
+         */
         @Override
         public int getItemCount() {
             return mGalleryItemList.size();
         }
     }
 
+    /**
+     *
+     *
+     */
     class FetcherTask extends AsyncTask<String, Void, List<GalleryItem>> {
 
         boolean running = false;
 
+        /**
+         *
+         *
+         * @param params
+         * @return
+         */
         @Override
         protected List<GalleryItem> doInBackground(String... params) {
 
@@ -269,19 +389,23 @@ public class PhotoGalleryFragment extends Fragment {
             return running;
         }
 
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            super.onProgressUpdate(values);
+//        @Override
+//        protected void onProgressUpdate(Void... values) {
+//            super.onProgressUpdate(values);
+//        }
 
-            String formatString = getResources().getString(R.string.photo_progress_loaded);
-            Snackbar.make(mRecyclerView, formatString, Snackbar.LENGTH_SHORT).show();
-        }
-
+        /**
+         *
+         *
+         * @param galleryItems
+         */
         @Override
         protected void onPostExecute(List<GalleryItem> galleryItems) {
             mAdapter = new PhotoGalleryAdapter(galleryItems);
             mRecyclerView.setAdapter(mAdapter);
 //                mRecyclerView.setAdapter(new PhotoGalleryAdapter(mItems));
+            String formatString = getResources().getString(R.string.photo_progress_loaded);
+            Snackbar.make(mRecyclerView, formatString, Snackbar.LENGTH_SHORT).show();
         }
     }
 }
