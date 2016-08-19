@@ -2,6 +2,7 @@ package ayp.aug.photogallery;
 
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
 
 /**
@@ -23,6 +25,7 @@ import static org.junit.Assert.*;
 @SmallTest
 public class FlickrFetcherAndroidTest {
 
+    private static final String TAG = "FlickrFetcher";
     private FlickrFetcher mFlickrFetcher;
 
     @Before
@@ -37,18 +40,29 @@ public class FlickrFetcherAndroidTest {
         assertThat(htmlResult, containsString("IT Professional Service"));
     }
 
-    @Test
-    public void testFetch() throws IOException {
-        String json = mFlickrFetcher.fetchItems();
+//    @Test
+//    public void testFetch() throws IOException {
+//        String json = mFlickrFetcher.fetchItems();
+//
+//        assertThat(json, containsString("perpage"));
+//    }
 
-        assertThat(json, containsString("perpage"));
+    @Test
+    public void testSearch() throws Exception {
+        List<GalleryItem> galleryItemList = new ArrayList<>();
+        mFlickrFetcher.searchPhotos(galleryItemList, "bird");
+
+        Log.d(TAG, "testSearch : size = " + galleryItemList.size());
+        assertThat(galleryItemList.size(), not(0));
     }
 
     @Test
-    public void testFetchList() throws IOException {
+    public void testGetRecent() throws Exception {
         List<GalleryItem> galleryItemList = new ArrayList<>();
-        mFlickrFetcher.fetchItems(galleryItemList);
+        mFlickrFetcher.getRecentPhotos(galleryItemList);
 
-        assertThat(galleryItemList.size(), is(100));
+        Log.d(TAG, "testRecent : size = " + galleryItemList.size());
+
+        assertThat(galleryItemList.size(), not(0));
     }
 }

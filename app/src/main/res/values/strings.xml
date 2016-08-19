@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">PhotoGallery</string>
     <string name="photo_progress_loaded">Progress loaded</string>
+    <string name="clear_search">clearSearch</string>
+    <string name="search">Search</string>
 </resources>

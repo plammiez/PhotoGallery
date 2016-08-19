@@ -14,8 +14,12 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.util.LruCache;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -92,6 +96,29 @@ public class PhotoGalleryFragment extends Fragment {
         mThumbnailDownloaderThread.getLooper();
 
         Log.i(TAG, "Start background thread");
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+
+        inflater.inflate(R.menu.list_menu_refresh, menu);
+
+        MenuItem menuItem = menu.findItem(R.id.menu_search);
+        final SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Log.d(TAG, "Query text submitted: " + query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                Log.d(TAG, "Query text changed: " + newText);
+                return false;
+            }
+        });
     }
 
     @Override
@@ -202,7 +229,7 @@ public class PhotoGalleryFragment extends Fragment {
                 Log.d(TAG, "Fetcher task finish");
                 List<GalleryItem> itemList = new ArrayList<>();
 
-                mFlickrFetcher.fetchItems(itemList);
+                mFlickrFetcher.getRecentPhotos(itemList);
                 Log.d(TAG, "Fetcher task finish");
                 return itemList;
             } finally {
