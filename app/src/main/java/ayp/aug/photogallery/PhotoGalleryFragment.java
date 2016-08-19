@@ -122,6 +122,27 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_refresh: loadPhoto(null);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void loadPhoto(String optionalSearchKey) {
+        if (mFetcherTask == null || !mFetcherTask.isRunning()) {
+            mFetcherTask = new FetcherTask();
+
+            if (optionalSearchKey != null) {
+                mFetcherTask.execute(optionalSearchKey);
+            } else {
+                mFetcherTask.execute("bird");
+            }
+        }
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
 
@@ -144,10 +165,11 @@ public class PhotoGalleryFragment extends Fragment {
         mRecyclerView = (RecyclerView) v.findViewById(R.id.photo_gallery_recycle_view);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
 
-        if (!mFetcherTask.isRunning()) {
-            mFetcherTask = new FetcherTask();
-            mFetcherTask.execute();
-        }
+//        if (!mFetcherTask.isRunning()) {
+//            mFetcherTask = new FetcherTask();
+//            mFetcherTask.execute();
+//        }
+        loadPhoto(null);
 //        mRecyclerView.setAdapter(new PhotoGalleryAdapter(itemList));
         return v;
     }
@@ -213,13 +235,12 @@ public class PhotoGalleryFragment extends Fragment {
         }
     }
 
-    class FetcherTask extends AsyncTask<Void, Void, List<GalleryItem>> {
+    class FetcherTask extends AsyncTask<String, Void, List<GalleryItem>> {
 
-        int total;
         boolean running = false;
 
         @Override
-        protected List<GalleryItem> doInBackground(Void... voids) {
+        protected List<GalleryItem> doInBackground(String... params) {
 
             synchronized (this) {
                 running = true;
@@ -229,7 +250,12 @@ public class PhotoGalleryFragment extends Fragment {
                 Log.d(TAG, "Fetcher task finish");
                 List<GalleryItem> itemList = new ArrayList<>();
 
-                mFlickrFetcher.getRecentPhotos(itemList);
+                if (params.length > 0) {
+                    mFlickrFetcher.searchPhotos(itemList, params[0]);
+                } else {
+                    mFlickrFetcher.getRecentPhotos(itemList);
+                }
+
                 Log.d(TAG, "Fetcher task finish");
                 return itemList;
             } finally {
