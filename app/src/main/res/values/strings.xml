@@ -3,4 +3,6 @@
     <string name="photo_progress_loaded">Progress loaded</string>
     <string name="clear_search">clearSearch</string>
     <string name="search">Search</string>
+    <string name="start_polling">Start Polling</string>
+    <string name="stop_polling">Stop Polling</string>
 </resources>

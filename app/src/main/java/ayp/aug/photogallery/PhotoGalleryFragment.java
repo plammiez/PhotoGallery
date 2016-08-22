@@ -74,10 +74,6 @@ public class PhotoGalleryFragment extends Fragment {
         setHasOptionsMenu(true);
         setRetainInstance(true);
 
-        Log.d(TAG, "Start intent service");
-        Intent i = PollService.newIntent(getActivity());
-        getActivity().startService(i);
-
         Log.d(TAG, "Memory sixe = " + maxMemory + " K ");
 
         mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
@@ -151,6 +147,13 @@ public class PhotoGalleryFragment extends Fragment {
             }
         });
 
+        //render polling
+        MenuItem mnuPolling = menu.findItem(R.id.mnu_toggle_polling);
+        if (PollService.isServiceAlarmOn(getActivity())) {
+            mnuPolling.setTitle(R.string.stop_polling);
+        } else {
+            mnuPolling.setTitle(R.string.start_polling);
+        }
     }
 
     /**
@@ -167,6 +170,16 @@ public class PhotoGalleryFragment extends Fragment {
 
             case R.id.menu_clear_search: mSearchKey = null;
                 loadPhoto();
+                return true;
+
+            case R.id.mnu_toggle_polling:
+                Log.d(TAG, "Start intent service");
+                boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
+//        Intent i = PollService.newIntent(getActivity());
+//        getActivity().startService(i);
+                Log.d(TAG, (shouldStartAlarm ? " Start " : " Stop ") + " Intent Service ");
+                PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
+                getActivity().invalidateOptionsMenu(); //refresh menu
                 return true;
         }
         return super.onOptionsItemSelected(item);
