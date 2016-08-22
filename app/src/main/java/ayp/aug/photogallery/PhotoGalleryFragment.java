@@ -1,5 +1,6 @@
 package ayp.aug.photogallery;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -72,6 +73,10 @@ public class PhotoGalleryFragment extends Fragment {
 
         setHasOptionsMenu(true);
         setRetainInstance(true);
+
+        Log.d(TAG, "Start intent service");
+        Intent i = PollService.newIntent(getActivity());
+        getActivity().startService(i);
 
         Log.d(TAG, "Memory sixe = " + maxMemory + " K ");
 
