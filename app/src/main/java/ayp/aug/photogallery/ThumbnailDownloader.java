@@ -39,6 +39,8 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         mResponseHandler = mUIHandler;
     }
 
+    /*** 1 Thread 1 Looper only.
+    1 Looper has Handler. ***/
     @Override
     protected void onLooperPrepared() {
         mRequestHandler = new Handler() {
@@ -70,6 +72,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
             byte[] bitMapBytes = new FlickrFetcher().getUrlBytes(url);
             final Bitmap bitmap = BitmapFactory.decodeByteArray(bitMapBytes, 0, bitMapBytes.length);
 
+            // add runnable in queue
             mResponseHandler.post(new Runnable() {
                 @Override
                 public void run() {

@@ -346,7 +346,7 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     /**
-     *
+     * One thread, use case: short time.
      *
      */
     class FetcherTask extends AsyncTask<String, Void, List<GalleryItem>> {
