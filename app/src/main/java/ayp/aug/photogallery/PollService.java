@@ -2,14 +2,18 @@ package ayp.aug.photogallery;
 
 import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -88,6 +92,25 @@ public class PollService extends IntentService {
             Log.i(TAG, "No new item");
         } else {
             Log.i(TAG, "New item found");
+
+            Resources res = getResources();
+            Intent i = PhotoGalleryActivity.newIntent(this);
+            PendingIntent pi = PendingIntent.getActivity(this, 0, i, 0);
+
+            //Build to build notification object
+            NotificationCompat.Builder notiBuilder = new NotificationCompat.Builder(this);
+            notiBuilder.setTicker(res.getString(R.string.new_picture_arriving));
+            notiBuilder.setSmallIcon(android.R.drawable.ic_menu_report_image);
+            notiBuilder.setContentTitle(res.getString(R.string.new_picture_title));
+            notiBuilder.setContentText(res.getString(R.string.new_picture_content));
+            notiBuilder.setContentIntent(pi);
+            notiBuilder.setAutoCancel(true);
+
+            Notification notification = notiBuilder.build(); // Build notification from builder
+
+            // Get notification manager
+            NotificationManagerCompat nm = NotificationManagerCompat.from(this);
+            nm.notify(0, notification);
         }
         PhotoGalleryPreference.setStoredLastId(this, newestId);
     }
