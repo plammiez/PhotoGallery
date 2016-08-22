@@ -1,15 +1,19 @@
 package ayp.aug.photogallery;
 
+import android.app.DialogFragment;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.util.LruCache;
 import android.support.v7.widget.GridLayoutManager;
@@ -24,6 +28,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -257,15 +262,17 @@ public class PhotoGalleryFragment extends Fragment {
      *
      *
      */
-    class PhotoHolder extends RecyclerView.ViewHolder {
+    class PhotoHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         ImageView mPhoto;
+        String mBigUrl;
 
         public PhotoHolder(View itemView) {
             super(itemView);
 
 //            mText = (TextView) itemView;
             mPhoto = (ImageView) itemView.findViewById(R.id.image_photo);
+            mPhoto.setOnClickListener(this);
         }
 
 //        public void bindGalleryItem(GalleryItem galleryItem) {
@@ -280,6 +287,16 @@ public class PhotoGalleryFragment extends Fragment {
         public void bindDrawable(@NonNull Drawable drawable) {
             mPhoto.setImageDrawable(drawable);
         }
+
+        public void setBigUrl(String bigUrl) {
+            mBigUrl = bigUrl;
+        }
+
+        @Override
+        public void onClick(View v) {
+            Snackbar.make(mRecyclerView, "Clicked on Photo", Snackbar.LENGTH_SHORT).show();
+
+        }
     }
 
     /**
@@ -292,6 +309,7 @@ public class PhotoGalleryFragment extends Fragment {
 
         PhotoGalleryAdapter(List<GalleryItem> galleryItems) {
             mGalleryItemList = galleryItems;
+
         }
 
         /**
@@ -324,6 +342,7 @@ public class PhotoGalleryFragment extends Fragment {
             GalleryItem galleryItem = mGalleryItemList.get(position);
             Log.d(TAG, "bind position #" + position + ", url: " + galleryItem.getUrl());
 
+            holder.setBigUrl(galleryItem.getBigSizeUrl());
             holder.bindDrawable(smileyDrawable);
 
             if(mMemoryCache.get(galleryItem.getUrl()) != null) {
@@ -332,6 +351,7 @@ public class PhotoGalleryFragment extends Fragment {
             } else {
                 mThumbnailDownloaderThread.queueThumbnailDownload(holder, galleryItem.getUrl());
             }
+
         }
 
         /**
@@ -375,7 +395,6 @@ public class PhotoGalleryFragment extends Fragment {
                 } else {
                     mFlickrFetcher.getRecentPhotos(itemList);
                 }
-
                 Log.d(TAG, "Fetcher task finish");
                 return itemList;
             } finally {
@@ -403,9 +422,10 @@ public class PhotoGalleryFragment extends Fragment {
         protected void onPostExecute(List<GalleryItem> galleryItems) {
             mAdapter = new PhotoGalleryAdapter(galleryItems);
             mRecyclerView.setAdapter(mAdapter);
-//                mRecyclerView.setAdapter(new PhotoGalleryAdapter(mItems));
+//            mRecyclerView.setAdapter(new PhotoGalleryAdapter(mItems));
             String formatString = getResources().getString(R.string.photo_progress_loaded);
             Snackbar.make(mRecyclerView, formatString, Snackbar.LENGTH_SHORT).show();
         }
     }
+
 }

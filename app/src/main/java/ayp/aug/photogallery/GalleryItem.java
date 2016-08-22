@@ -8,6 +8,7 @@ public class GalleryItem {
     private String mId;
     private String mTitle;
     private String mUrl;
+    private String mBigSizeUrl;
 
     public void setId(String id) {
         mId = id;
@@ -51,5 +52,17 @@ public class GalleryItem {
             return that.mId != null && mId != null && that.mId.equals(mId);
         }
         return false;
+    }
+
+    public void setBigSizeUrl(String bigSizeUrl) {
+        mBigSizeUrl = bigSizeUrl;
+    }
+
+    public String getBigSizeUrl() {
+        return mBigSizeUrl;
+    }
+
+    public String getPhotoFileName() {
+        return "IMG_" + getId().toString() + ".jpg";
     }
 }
