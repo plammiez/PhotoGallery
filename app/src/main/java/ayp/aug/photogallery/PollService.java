@@ -40,8 +40,8 @@ public class PollService extends IntentService {
 
         if (isOn) {
             //AlarmManager.RTC -> System.currentTimeMillis();
-            am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,   //param1: Mode
-                    SystemClock.elapsedRealtime(),                  //param2: Start
+            am.setInexactRepeating(AlarmManager.RTC_WAKEUP,         //param1: Mode
+                    System.currentTimeMillis(),                     //param2: Start
                     POLL_INTERVAL,                                  //param3: Interval
                     pi);                                            //param4: Pending action(intent)
         } else {
@@ -66,9 +66,12 @@ public class PollService extends IntentService {
         if (!isNetworkAvailableAndConnected()) {
             return;
         }
+
         Log.i(TAG, "Active network!");
 
         String query = PhotoGalleryPreference.getStoredSearchKey(this);
+//        String query = PhotoGalleryPreference.getSP(this)
+//                .getString(PhotoGalleryPreference.PREF_SEARCH_KEY, null);
         String storedId = PhotoGalleryPreference.getStoredLastId(this);
 
         List<GalleryItem> galleryItemList = new ArrayList<>();
@@ -110,7 +113,10 @@ public class PollService extends IntentService {
 
             // Get notification manager
             NotificationManagerCompat nm = NotificationManagerCompat.from(this);
-            nm.notify(0, notification);
+            //newestId is id of each photo
+//            nm.notify(newestId.hashCode(), notification);
+            nm.notify(Long.valueOf(newestId).intValue(), notification);
+//            nm.notify(0, notification);
         }
         PhotoGalleryPreference.setStoredLastId(this, newestId);
     }
