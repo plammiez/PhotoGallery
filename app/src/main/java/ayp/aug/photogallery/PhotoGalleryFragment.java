@@ -74,6 +74,11 @@ public class PhotoGalleryFragment extends Fragment {
         setHasOptionsMenu(true);
         setRetainInstance(true);
 
+        Intent intent = PollService.newIntent(getActivity());
+        getActivity().startService(intent);
+
+        PollService.setServiceAlarm(getActivity(), true);
+
         Log.d(TAG, "Memory sixe = " + maxMemory + " K ");
 
         mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
