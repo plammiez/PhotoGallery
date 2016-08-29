@@ -17,6 +17,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,9 +32,10 @@ import java.util.List;
 /**
  * Created by Waraporn on 8/16/2016.
  */
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends VisibleFragment {
 
     private static final String TAG = "PhotoGalleryFragment";
+    private String mBigUrl;
 
     /**
      * Method for make sure isPhotoGalleryFragment.
@@ -79,7 +81,7 @@ public class PhotoGalleryFragment extends Fragment {
 
         PollService.setServiceAlarm(getActivity(), true);
 
-        Log.d(TAG, "Memory sixe = " + maxMemory + " K ");
+        Log.d(TAG, "Memory size = " + maxMemory + " K ");
 
         mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
             @Override
@@ -129,6 +131,7 @@ public class PhotoGalleryFragment extends Fragment {
 
         MenuItem menuItem = menu.findItem(R.id.menu_search);
         final SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setQuery(mSearchKey, false);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -284,7 +287,7 @@ public class PhotoGalleryFragment extends Fragment {
      *
      *
      */
-    class PhotoHolder extends RecyclerView.ViewHolder {
+    class PhotoHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener, MenuItem.OnMenuItemClickListener, View.OnClickListener {
 
         ImageView mPhoto;
 
@@ -293,6 +296,9 @@ public class PhotoGalleryFragment extends Fragment {
 
 //            mText = (TextView) itemView;
             mPhoto = (ImageView) itemView.findViewById(R.id.image_photo);
+            mPhoto.setOnClickListener(this);
+
+            itemView.setOnCreateContextMenuListener(this);
         }
 
 //        public void bindGalleryItem(GalleryItem galleryItem) {
@@ -306,6 +312,27 @@ public class PhotoGalleryFragment extends Fragment {
          */
         public void bindDrawable(@NonNull Drawable drawable) {
             mPhoto.setImageDrawable(drawable);
+        }
+
+        public void setBigUrl(String bigUrl) {
+            mBigUrl = bigUrl;
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+            MenuItem menuItem = menu.add(R.string.open_by_url);
+            menu.setHeaderTitle(mBigUrl);
+            menuItem.setOnMenuItemClickListener(this);
+        }
+
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            return false;
+        }
+
+        @Override
+        public void onClick(View v) {
+
         }
     }
 

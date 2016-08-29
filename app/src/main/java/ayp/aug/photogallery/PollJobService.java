@@ -1,6 +1,7 @@
 package ayp.aug.photogallery;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.job.JobInfo;
@@ -77,6 +78,17 @@ public class PollJobService extends JobService {
         sch.schedule(jobInfo);
     }
 
+    public void sendBackgroundNotification(int requestCode, Notification notification) {
+        Intent intent = new Intent(PollService.ACTION_SHOW_NOTIFICATION);
+        intent.putExtra(PollService.REQUEST_CODE, requestCode);
+        intent.putExtra(PollService.NOTIFICATION, notification);
+
+        sendOrderedBroadcast(intent, PollService.PERMISSION_SHOW_NOTIF,
+                null, null,
+                Activity.RESULT_OK,
+                null, null);
+    }
+
     public class PollTask extends AsyncTask<JobParameters, Void, Void> {
 
         @Override
@@ -129,12 +141,16 @@ public class PollJobService extends JobService {
                     notiBuilder.setAutoCancel(true); //if it already have it not appear
 
                     Notification notification = notiBuilder.build(); // << Build notification from builder
+                    sendBackgroundNotification(0, notification);
+
+//                    sendBroadcast(new Intent(PollService.ACTION_SHOW_NOTIFICATION), PollService.PERMISSION_SHOW_NOTIF);
 
                     //Get notification manager from contect
-                    NotificationManagerCompat nm = NotificationManagerCompat.from(PollJobService.this);
-                    nm.notify(Long.valueOf(newestId).intValue(), notification);
+//                    NotificationManagerCompat nm = NotificationManagerCompat.from(PollJobService.this);
 
-                    new Screen().on(PollJobService.this);
+//                    nm.notify(0, notification);
+
+//                    new Screen().on(PollJobService.this);
 
 //            nm.notify(0, notification);
                 }
@@ -146,4 +162,5 @@ public class PollJobService extends JobService {
             return null;
         }
     }
+
 }

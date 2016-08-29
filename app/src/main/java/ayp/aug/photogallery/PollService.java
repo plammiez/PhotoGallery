@@ -1,5 +1,6 @@
 package ayp.aug.photogallery;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
@@ -29,6 +30,12 @@ public class PollService extends IntentService {
 
     private static final int POLL_INTERVAL = 1000*1; //1 sec
 
+    //public broadcast name for this action
+    public static final String ACTION_SHOW_NOTIFICATION = "ayp.aug.photogallery.ACTION_SHOW_NOTIFICATION";
+    public static final String PERMISSION_SHOW_NOTIF = "ayp.aug.photogallery.RECEIVE_SHOW_NOTIFICATION";
+    public static final String REQUEST_CODE = "REQUEST_CODE_INTENT";
+    public static final String NOTIFICATION = "NOTIF";
+
     public static Intent newIntent(Context context) {
         return new Intent(context, PollService.class);
     }
@@ -43,10 +50,10 @@ public class PollService extends IntentService {
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 //AlarmManager.RTC -> System.currentTimeMillis();
-                am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,         //param1: Mode
-                        SystemClock.elapsedRealtime(),                      //param2: Start
-                        POLL_INTERVAL,                                      //param3: Interval
-                        pi);                                            //param4: Pending action(intent)
+                am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,     //param1: Mode
+                        SystemClock.elapsedRealtime(),                           //param2: Start
+                        POLL_INTERVAL,                                           //param3: Interval
+                        pi);                                                     //param4: Pending action(intent)
 
                 Log.d(TAG, "Run By Alarm Manager");
             } else {
@@ -61,8 +68,8 @@ public class PollService extends IntentService {
             } else {
                 PollJobService.stop(c);
             }
-
         }
+        PhotoGalleryPreference.setStoredAlarmOn(c, isOn);
     }
 
     public static boolean isServiceAlarmOn(Context context) {
@@ -129,14 +136,29 @@ public class PollService extends IntentService {
             notiBuilder.setAutoCancel(true);
 
             Notification notification = notiBuilder.build(); // Build notification from builder
+            sendBackgroundNotification(0, notification);
 
             // Get notification manager
-            NotificationManagerCompat nm = NotificationManagerCompat.from(this);
-            nm.notify(0, notification);
+//            NotificationManagerCompat nm = NotificationManagerCompat.from(this);
 
-            new Screen().on(this);
+//            nm.notify(0, notification);
+
+//            new Screen().on(this);
+
+//            sendBroadcast(new Intent(ACTION_SHOW_NOTIFICATION), PERMISSION_SHOW_NOTIF);
         }
         PhotoGalleryPreference.setStoredLastId(this, newestId);
+    }
+
+    public void sendBackgroundNotification(int requestCode, Notification notification) {
+        Intent intent = new Intent(ACTION_SHOW_NOTIFICATION);
+        intent.putExtra(REQUEST_CODE, requestCode);
+        intent.putExtra(NOTIFICATION, notification);
+
+        sendOrderedBroadcast(intent, PERMISSION_SHOW_NOTIF,
+                null, null,
+                Activity.RESULT_OK,
+                null, null);
     }
 
     private boolean isNetworkAvailableAndConnected() {
