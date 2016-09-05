@@ -15,6 +15,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.*;
 
 /**
@@ -50,7 +51,7 @@ public class FlickrFetcherAndroidTest {
     @Test
     public void testSearch() throws Exception {
         List<GalleryItem> galleryItemList = new ArrayList<>();
-        mFlickrFetcher.searchPhotos(galleryItemList, "bird");
+        mFlickrFetcher.searchPhotos(galleryItemList, "flower");
 
         Log.d(TAG, "testSearch : size = " + galleryItemList.size());
         assertThat(galleryItemList.size(), not(0));
@@ -64,5 +65,7 @@ public class FlickrFetcherAndroidTest {
         Log.d(TAG, "testRecent : size = " + galleryItemList.size());
 
         assertThat(galleryItemList.size(), not(0));
+//        assertThat(galleryItemList.get(0).getBigsizeUrl(), notNullValue());
+        assertThat(galleryItemList.get(0).getOwner(), notNullValue());
     }
 }
