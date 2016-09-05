@@ -86,7 +86,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
             Log.i(TAG, "Google API connected");
 
             mUseGPS = PhotoGalleryPreference.getUseGPS(getActivity());
-            if (mUseGPS){
+            if (mUseGPS) {
                 findLocation();
             }
         }
@@ -110,8 +110,6 @@ public class PhotoGalleryFragment extends VisibleFragment {
     };
 
     /**
-     *
-     *
      * @param savedInstanceState
      */
     @Override
@@ -120,6 +118,9 @@ public class PhotoGalleryFragment extends VisibleFragment {
 
         setHasOptionsMenu(true);
         setRetainInstance(true);
+
+        mUseGPS = PhotoGalleryPreference.getUseGPS(getActivity());
+        mSearchKey = PhotoGalleryPreference.getStoredSearchKey(getActivity());
 
         Intent intent = PollService.newIntent(getActivity());
         getActivity().startService(intent);
@@ -173,12 +174,12 @@ public class PhotoGalleryFragment extends VisibleFragment {
         }
     }
 
-    private boolean hasPermission(){
+    private boolean hasPermission() {
         int permissionStatus =
                 ContextCompat.checkSelfPermission(getActivity(),
                         Manifest.permission.ACCESS_FINE_LOCATION);
 
-        if(permissionStatus == PackageManager.PERMISSION_GRANTED){
+        if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
             return true;
         }
 
@@ -193,8 +194,8 @@ public class PhotoGalleryFragment extends VisibleFragment {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
-        if(requestCode == REQUEST_PERMISSION_LOCATION){
-            if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+        if (requestCode == REQUEST_PERMISSION_LOCATION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 requestLocation();
             }
         }
@@ -217,8 +218,6 @@ public class PhotoGalleryFragment extends VisibleFragment {
     }
 
     /**
-     *
-     *
      * @param menu
      * @param inflater
      */
@@ -264,18 +263,18 @@ public class PhotoGalleryFragment extends VisibleFragment {
     }
 
     /**
-     *
-     *
      * @param item
      * @return
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_refresh: loadPhoto();
+            case R.id.menu_refresh:
+                loadPhoto();
                 return true;
 
-            case R.id.menu_clear_search: mSearchKey = null;
+            case R.id.menu_clear_search:
+                mSearchKey = null;
                 loadPhoto();
                 return true;
 
@@ -325,6 +324,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
         super.onStop();
         mGoogleApiClient.disconnect();
     }
+
     /**
      *
      *
@@ -378,8 +378,6 @@ public class PhotoGalleryFragment extends VisibleFragment {
     }
 
     /**
-     *
-     *
      * @param inflater
      * @param container
      * @param savedInstanceState
@@ -429,15 +427,13 @@ public class PhotoGalleryFragment extends VisibleFragment {
 //        }
 
         /**
-         *
-         *
          * @param drawable
          */
         public void bindDrawable(@NonNull Drawable drawable) {
             mPhoto.setImageDrawable(drawable);
         }
 
-        public void bindGalleryItem(GalleryItem galleryItem){
+        public void bindGalleryItem(GalleryItem galleryItem) {
             mGalleryItem = galleryItem;
         }
 
@@ -449,6 +445,8 @@ public class PhotoGalleryFragment extends VisibleFragment {
             menuItem.setOnMenuItemClickListener(this);
             MenuItem menuItem2 = menu.add(0, 2, 0, R.string.open_in_app_broswer);
             menuItem2.setOnMenuItemClickListener(this);
+            MenuItem menuItem3 = menu.add(0, 3, 0, R.string.open_in_map);
+            menuItem3.setOnMenuItemClickListener(this);
         }
 
         @Override
@@ -461,9 +459,18 @@ public class PhotoGalleryFragment extends VisibleFragment {
 
                 case 2:
                     Intent i2 = PhotoPageActivity.newIntent(getActivity(), mGalleryItem.getPhotoUri());
-                    startActivity(i2); //call internal browser by implicit intent
+                    startActivity(i2);
                     return true;
 
+                case 3:
+                    Location itemLoc = new Location("");
+                    itemLoc.setLatitude(Double.valueOf(mGalleryItem.getLat()));
+                    itemLoc.setLongitude(Double.valueOf(mGalleryItem.getLon()));
+
+                    Intent i3 = PhotoMapActivity.newIntent(getActivity(),
+                            mLocation, itemLoc, null);
+                    startActivity(i3);
+                    return true;
                 default:
             }
 
@@ -489,8 +496,6 @@ public class PhotoGalleryFragment extends VisibleFragment {
         }
 
         /**
-         *
-         *
          * @param parent
          * @param viewType
          * @return
@@ -504,8 +509,6 @@ public class PhotoGalleryFragment extends VisibleFragment {
         }
 
         /**
-         *
-         *
          * @param holder
          * @param position
          */
@@ -521,7 +524,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
             holder.bindDrawable(smileyDrawable);
             holder.bindGalleryItem(galleryItem);
 
-            if(mMemoryCache.get(galleryItem.getUrl()) != null) {
+            if (mMemoryCache.get(galleryItem.getUrl()) != null) {
                 Bitmap bitmap = mMemoryCache.get(galleryItem.getUrl());
                 holder.bindDrawable(new BitmapDrawable(getResources(), bitmap));
             } else {
@@ -530,8 +533,6 @@ public class PhotoGalleryFragment extends VisibleFragment {
         }
 
         /**
-         *
-         *
          * @return
          */
         @Override
@@ -549,8 +550,6 @@ public class PhotoGalleryFragment extends VisibleFragment {
         boolean running = false;
 
         /**
-         *
-         *
          * @param params
          * @return
          */
@@ -564,9 +563,17 @@ public class PhotoGalleryFragment extends VisibleFragment {
             try {
                 Log.d(TAG, "Fetcher task finish");
                 List<GalleryItem> itemList = new ArrayList<>();
+                FlickrFetcher flickrFetcher = new FlickrFetcher();
 
                 if (params.length > 0) {
-                    mFlickrFetcher.searchPhotos(itemList, params[0]);
+                    if (mUseGPS && mLocation != null) {
+                        flickrFetcher.searchPhotos(itemList, params[0],
+                                String.valueOf(mLocation.getLatitude()),
+                                String.valueOf(mLocation.getLongitude()));
+                    } else {
+                        mFlickrFetcher.searchPhotos(itemList, params[0]);
+                    }
+
                 } else {
                     mFlickrFetcher.getRecentPhotos(itemList);
                 }
@@ -590,8 +597,6 @@ public class PhotoGalleryFragment extends VisibleFragment {
 //        }
 
         /**
-         *
-         *
          * @param galleryItems
          */
         @Override

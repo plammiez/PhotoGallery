@@ -11,6 +11,8 @@ public class GalleryItem {
     private String mTitle;
     private String mUrl;
     private String mOwner;
+    private String mLat;
+    private String mLon;
 
     public void setId(String id) {
         mId = id;
@@ -62,6 +64,23 @@ public class GalleryItem {
 
     public void setOwner(String owner) {
         mOwner = owner;
+    }
+
+
+    public String getLat() {
+        return mLat;
+    }
+
+    public void setLat(String lat) {
+        mLat = lat;
+    }
+
+    public String getLon() {
+        return mLon;
+    }
+
+    public void setLon(String lon) {
+        mLon = lon;
     }
 
     private static final String PHOTO_URL_PREFIX = "https://www.flickr.com/photos/";
